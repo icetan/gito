@@ -1,0 +1,41 @@
+#!/bin/bash
+set -e
+
+source common.sh
+
+while test "$1"; do
+  case "$1" in
+    -b|--bare)
+      bare=1;shift;;
+    -*)
+      die "$1 is not an option";;
+    *)
+      arg="$1";shift
+      ;;
+  esac
+done
+
+set -x
+
+if [ "$bare" ]; then
+  git init --bare --share=all --template="$SCRIPT_DIR/template"
+  touch pubsub
+  chgrp -R $SCRIPT_GROUP .
+  chmod -R g+rw .
+  chmod g+s `find . -type d`
+  export GIT_WORK_TREE=$(mktemp -d)
+  git config -f config user.email "$(whoami)@$(hostname)"
+  git config -f config user.name "$(whoami)"
+  git commit --allow-empty -m "Gito auto inito"
+  rm -rf "$GIT_WORK_TREE"
+else
+  export GIT_WORK_TREE="$PWD"
+  export GIT_DIR="$GIT_WORK_TREE/.gito"
+
+  git init --template=
+  initrepo .
+
+  git add .
+  git commit -m "Gito auto inito" || true
+fi
+

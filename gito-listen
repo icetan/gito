@@ -1,0 +1,53 @@
+#!/bin/bash
+set -e
+
+source common.sh
+
+setrepo .
+
+git rev-parse --is-inside-work-tree &> /dev/null || die "Not a gito repo, first run: gito init"
+
+while test "$1"; do
+  case "$1" in
+    #-a|--autosync)
+    #  autosync_mode=1;shift;;
+    -*)
+      die "$1 is not an option";;
+  esac
+done
+
+REMOTE="${1-`git remote get-url origin`}"
+SSH_HOST="${REMOTE%%:*}"
+REMOTE_PATH="${REMOTE#*:}"
+
+autosync() {
+  ( cd "$GIT_WORK_TREE"
+    inotifywait -mrq -e "modify,delete,move" --exclude .gito . | xargs -L1 -I% gito sync
+  ) &
+}
+
+grep -q : <<<"$REMOTE" && ssh_mode="ssh $SSH_HOST -- "
+
+gito sync -f
+
+# XXX: This will trigger on received messages also
+#test "$autosync_mode" && autosync
+
+$ssh_mode tail -f -n0 "$REMOTE_PATH/pubsub" \
+| while read -r -d '' patch; do
+  hash=$(head -n1 <<<"$patch" | grep -oE " [a-f0-9]{40} ")
+
+  echo >&2 "=== START PATCH $hash ==="
+  echo >&2 "$patch"
+  echo >&2 "=== END PATCH ==="
+
+  if git rev-list --quiet -n1 $hash; then
+    echo >&2 "INFO: Patch already applied, skipping"
+  elif git am <<<"$patch"; then
+    echo >&2 "INFO: Applied patch successfully"
+  else
+    git am --abort
+    echo >&2 "INFO: Apply patch failed, rebasing"
+    gito sync -f
+  fi
+done

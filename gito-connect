@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+source common.sh
+
+REMOTE=${1:?No remote given}
+
+setrepo .
+
+git remote add origin "$REMOTE" \
+  || git remote set-url origin "$REMOTE"
+git branch -u origin/master || git push -u origin master
