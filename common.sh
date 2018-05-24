@@ -19,8 +19,11 @@ initrepo() {
   )
 }
 setrepo() {
-  export GIT_WORK_TREE="`rtrav .gito $(cd $1;pwd)`"
+  export GIT_WORK_TREE="`gitopath`"
   export GIT_DIR="$GIT_WORK_TREE/.gito"
+}
+gitopath () {
+  rtrav .gito $(cd "${1-.}";pwd)
 }
 
 SCRIPT_NAME="$(basename $0)"
