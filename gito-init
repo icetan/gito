@@ -11,6 +11,7 @@ while test "$1"; do
       die "$1 is not an option";;
     *)
       arg="$1";shift
+      test "$LOCAL" || { LOCAL="$arg";continue; }
       ;;
   esac
 done
@@ -18,16 +19,19 @@ done
 set -x
 
 if [ "$bare" ]; then
-  git init --bare --share=all --template="$SCRIPT_DIR/template"
-  touch pubsub
-  chgrp -R $SCRIPT_GROUP .
-  chmod -R g+rw .
-  chmod g+s `find . -type d`
-  export GIT_WORK_TREE=$(mktemp -d)
-  git config -f config user.email "$(whoami)@$(hostname)"
-  git config -f config user.name "$(whoami)"
-  git commit --allow-empty -m "Gito auto inito"
-  rm -rf "$GIT_WORK_TREE"
+  test "$LOCAL" || die "No destination given"
+  mkdir -p "$LOCAL"
+  (cd "$LOCAL"
+    git init --bare --share=all --template="$SCRIPT_DIR/template"
+    touch pubsub
+    chmod -R g+rw .
+    chmod g+s `find . -type d`
+    export GIT_WORK_TREE=$(mktemp -d)
+    git config -f config user.email "$(whoami)@$(hostname)"
+    git config -f config user.name "$(whoami)"
+    git commit --allow-empty -m "Gito auto inito"
+    rm -rf "$GIT_WORK_TREE"
+  )
 else
   export GIT_WORK_TREE="$PWD"
   export GIT_DIR="$GIT_WORK_TREE/.gito"

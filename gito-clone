@@ -24,7 +24,6 @@ if [ "$bare" ]; then
   GIT_DIR="$REMOTE/.gito" git clone --bare --template="$SCRIPT_DIR/template" "$REMOTE" "$LOCAL"
   git config -f "$LOCAL/config" core.sharedRepository group
   touch "$LOCAL/pubsub"
-  chgrp -R $SCRIPT_GROUP "$LOCAL"
   chmod -R g+rw "$LOCAL"
   chmod g+s `find "$LOCAL" -type d`
 else

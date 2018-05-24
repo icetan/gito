@@ -25,8 +25,6 @@ setrepo() {
 
 SCRIPT_NAME="$(basename $0)"
 SCRIPT_DIR="$(cd `dirname $0`;pwd)"
-SCRIPT_USER="gito"
-SCRIPT_GROUP="gito"
 
 export PATH="$PATH:$SCRIPT_DIR"
 export GIT_CONFIG_NOSYSTEM=1
