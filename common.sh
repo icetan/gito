@@ -19,7 +19,7 @@ initrepo() {
   )
 }
 setrepo() {
-  export GIT_WORK_TREE="`gitopath`"
+  export GIT_WORK_TREE="`gitopath "$1"`"
   export GIT_DIR="$GIT_WORK_TREE/.gito"
 }
 gitopath () {
