@@ -3,38 +3,48 @@ set -e
 
 source common.sh
 
-setrepo .
-git rev-parse --is-inside-work-tree &> /dev/null || die "Not a gito repo, first run: gito init"
-
 while test "$1"; do
   case "$1" in
-    -f|--force)
-      force=1
-      shift;;
-    -*)
-      die "$1 is not an option";;
+    -f|--force) force=1;shift;;
+    -p|--patch) patch=1;shift;;
+    -*) die "$1 is not an option";;
+    *) LOCAL="$1";shift;;
   esac
 done
 
+setrepo "${LOCAL-.}"
+git rev-parse --is-inside-work-tree &>/dev/null || die "Not a gito repo, first run: gito init"
+
 test "$force" || test -n "$(git status --porcelain 2> /dev/null)" || stop "Nothing to sync"
 
-set -x
+patch() {
+  test "$patch" && {
+    { git format-patch --stdout -p HEAD^;echo -en '\0'; } >> "$PUBSUB_FILE"
+    exit 0
+  }
+}
 
-#chmod g+w $(git ls-files --others --exclude-standard) || true
-git add "$GIT_WORK_TREE"
-git commit -m "Gito auto commito" || test "$force"
-
-MAX_RETRY=20
-RETRY_COUNT=0
-
-push() {
-  ((RETRY_COUNT++<MAX_RETRY)) || die "Reached max pull retry count"
+rebase() {
   git pull --rebase -s recursive -X ours || {
     echo >&2 "WARNING: Couldn't resolve rebase, doing a hard reset"
     git rebase --abort
     git reset --hard origin/master
   }
-  git push || (echo >&2 "Retrying $RETRY_COUNT"; push)
 }
 
+MAX_RETRY=20
+RETRY_COUNT=0
+push() {
+  ((RETRY_COUNT++<MAX_RETRY)) || die "Reached max pull retry count"
+  git push || {
+    rebase
+    echo >&2 "INFO: Retrying $RETRY_COUNT"
+    push
+  }
+}
+
+git add "${LOCAL-$GIT_WORK_TREE}" &>/dev/null
+git commit -m "Gito auto commito" &>/dev/null && patch || test "$force"
+
+test "$force" && rebase
 push

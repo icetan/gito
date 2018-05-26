@@ -5,12 +5,8 @@ source common.sh
 
 while test "$1"; do
   case "$1" in
-    -b|--bare)
-      bare=1;shift;;
-    -*)
-      die "$1 is not an option";;
-    *)
-      arg="$1";shift
+    -*) die "$1 is not an option";;
+    *) arg="$1";shift
       test "$REMOTE" || { REMOTE="$arg";continue; }
       test "$LOCAL" || { LOCAL="$arg";continue; }
       ;;
@@ -20,16 +16,8 @@ done
 test "$REMOTE" || die "No remote given"
 test "$LOCAL" || die "No local directory given"
 
-if [ "$bare" ]; then
-  GIT_DIR="$REMOTE/.gito" git clone --bare --template="$SCRIPT_DIR/template" "$REMOTE" "$LOCAL"
-  git config -f "$LOCAL/config" core.sharedRepository group
-  touch "$LOCAL/pubsub"
-  chmod -R g+rw "$LOCAL"
-  chmod g+s `find "$LOCAL" -type d`
-else
-  GIT_DIR="$REMOTE/.gito" git clone --template= "$REMOTE" "$LOCAL"
-  mv "$LOCAL"/.git{,o}
-  setrepo "$LOCAL"
-  initrepo "$GIT_WORK_TREE"
-fi
-
+git clone --template="$SCRIPT_DIR/template" "$REMOTE/.gito" "$LOCAL"
+mv "$LOCAL"/.git{,o}
+chmod -R g+rw "$LOCAL"
+chmod g+s `find "$LOCAL" -type d`
+initrepo "$LOCAL"

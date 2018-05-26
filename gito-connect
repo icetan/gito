@@ -3,7 +3,7 @@ set -e
 
 source common.sh
 
-REMOTE=${1:?No remote given}
+REMOTE="${1:?No remote given}/.gito"
 
 setrepo .
 
