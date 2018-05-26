@@ -9,7 +9,7 @@ export GIT_CONFIG_NOSYSTEM=1
 while read OLDSHA NEWSHA REF; do
   for SHA in `git rev-list --reverse $OLDSHA..$NEWSHA`; do
     git format-patch --stdout -p $SHA^..$SHA;echo -en '\0'
-  done >> pubsub
+  done >> produce
 done
 
 cd ..

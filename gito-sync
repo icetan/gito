@@ -18,7 +18,7 @@ test "$force" || test -n "$(git status --porcelain 2> /dev/null)" || stop "Nothi
 
 patch() {
   test ! "$force" && {
-    { git format-patch --stdout -p HEAD^;echo -en '\0'; } >> "$PUBSUB_FILE"
+    { git format-patch --stdout -p HEAD^;echo -en '\0'; } >> "$CONSUME_FILE"
     exit 0
   }
 }

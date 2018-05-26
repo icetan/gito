@@ -14,7 +14,8 @@ stop() {
 initrepo() {
   (cd "$1"
     echo .gito/ > .gito/gitoignore
-    touch .gito/pubsub
+    touch .gito/produce
+    mkfifo .gito/consume
     git config -f .gito/config core.sharedRepository group
     git config -f .gito/config core.excludesfile .gito/gitoignore
     git config -f .gito/config user.email "$(whoami)@$(hostname)"
@@ -25,7 +26,7 @@ initrepo() {
 setrepo() {
   export GIT_WORK_TREE="`gitopath "$1"`"
   export GIT_DIR="$GIT_WORK_TREE/.gito"
-  export PUBSUB_FILE="$GIT_WORK_TREE/.gito/pubsub"
+  export CONSUME_FILE="$GIT_WORK_TREE/.gito/consume"
 }
 gitopath () {
   rtrav .gito "$(cd "${1-.}" &>/dev/null || cd "$(dirname "${1-.}")";pwd)"

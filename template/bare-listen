@@ -29,7 +29,7 @@ while IFS= read -r -d '' patch; do
 #  } || true
 
   if git am <<<"$patch"; then
-    { echo "$patch";echo -ne '\0'; } >> "$GIT_DIR/pubsub"
+    { echo "$patch";echo -ne '\0'; } >> "$GIT_DIR/produce"
     echo >&2 "INFO: Applied patch successfully"
   else
     git am --abort || true

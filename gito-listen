@@ -31,9 +31,8 @@ grep -q : <<<"$REMOTE" && ssh_mode="ssh $SSH_HOST -- "
 start_push() {
   info "Pushing"
   while true; do
-    #tail -f -n0 $PUBSUB_FILE | $ssh_mode tee -a "$REMOTE_FILE/pubsub"
-    echo -n > "$PUBSUB_FILE"
-    tail -f -n0 "$PUBSUB_FILE" | $ssh_mode "$REMOTE_FILE/bare-listen" "$REMOTE_FILE/.." || {
+    #tail -f -n0 $CONSUME_FILE | $ssh_mode tee -a "$REMOTE_FILE/produce"
+    tail -f -n0 "$CONSUME_FILE" | $ssh_mode "$REMOTE_FILE/bare-listen" "$REMOTE_FILE/.." || {
       warn "Push failed, rebasing"
       gito sync -f
     }
@@ -42,7 +41,7 @@ start_push() {
 
 start_pull() {
   info "Listening"
-  $ssh_mode tail -f -n0 "$REMOTE_FILE/pubsub" | while read -r -d '' patch; do
+  $ssh_mode tail -f -n0 "$REMOTE_FILE/produce" | while read -r -d '' patch; do
     echo >&2 "=== START PULLING PATCH ==="
     echo >&2 "$patch"
     echo >&2 "=== END PULLING PATCH ==="
