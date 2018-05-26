@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-exec 0<&-
-
 source common.sh
 
 setrepo .
@@ -34,7 +32,7 @@ start_push() {
     #tail -f -n0 $CONSUME_FILE | $ssh_mode tee -a "$REMOTE_FILE/produce"
     tail -f -n0 "$CONSUME_FILE" | $ssh_mode "$REMOTE_FILE/bare-listen" "$REMOTE_FILE/.." || {
       warn "Push failed, rebasing"
-      gito sync -f
+      gito sync -f || true
     }
   done
 }
@@ -55,20 +53,16 @@ start_pull() {
     else
       git am --abort
       echo >&2 "INFO: Apply patch failed, rebasing"
-      gito sync -f
+      gito sync -f || true
     fi
   done
 }
 
 gito sync -f
 
-trap 'trap - EXIT TERM; kill $PIDS' EXIT TERM
+trap "trap - SIGTERM && kill -- 0" SIGINT SIGTERM EXIT
 
 start_pull &
-PIDS+=" $!"
-#if [ "$push" ]; then
 start_push &
-PIDS+=" $!"
-#fi
 
 wait

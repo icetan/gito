@@ -15,7 +15,7 @@ initrepo() {
   (cd "$1"
     echo .gito/ > .gito/gitoignore
     touch .gito/produce
-    mkfifo .gito/consume
+    touch .gito/consume
     git config -f .gito/config core.sharedRepository group
     git config -f .gito/config core.excludesfile .gito/gitoignore
     git config -f .gito/config user.email "$(whoami)@$(hostname)"
@@ -31,6 +31,8 @@ setrepo() {
 gitopath () {
   rtrav .gito "$(cd "${1-.}" &>/dev/null || cd "$(dirname "${1-.}")";pwd)"
 }
+
+exec 0<&-
 
 SCRIPT_NAME="$(basename $0)"
 SCRIPT_DIR="$(cd `dirname $0`;pwd)"
