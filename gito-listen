@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+exec 0<&-
+
 source common.sh
 
 setrepo .
@@ -9,9 +11,6 @@ git rev-parse --is-inside-work-tree &> /dev/null || die "Not a gito repo, first 
 
 while test "$1"; do
   case "$1" in
-    #-a|--autosync)
-    #  autosync_mode=1;shift;;
-    -p|--push) push=1;shift;;
     -*) die "$1 is not an option";;
   esac
 done
@@ -20,16 +19,14 @@ REMOTE="$(git remote get-url origin)"
 SSH_HOST="${REMOTE%%:*}"
 REMOTE_FILE="${REMOTE#*:}"
 
-autosync() {
-  ( cd "$GIT_WORK_TREE"
-    inotifywait -mrq -e "modify,delete,move" --exclude .gito . | xargs -L1 -I% gito sync
-  ) &
-}
-
 grep -q : <<<"$REMOTE" && ssh_mode="ssh $SSH_HOST -- "
 
 # XXX: This will trigger on received messages also
-#test "$autosync_mode" && autosync
+#autosync() {
+#  ( cd "$GIT_WORK_TREE"
+#    inotifywait -mrq -e "modify,delete,move" --exclude .gito . | xargs -L1 -I% gito sync
+#  ) &
+#}
 
 start_push() {
   info "Pushing"
@@ -65,8 +62,14 @@ start_pull() {
 }
 
 gito sync -f
+
+trap 'trap - EXIT TERM; kill $PIDS' EXIT TERM
+
 start_pull &
-if [ "$push" ]; then
-  start_push &
-fi
+PIDS+=" $!"
+#if [ "$push" ]; then
+start_push &
+PIDS+=" $!"
+#fi
+
 wait

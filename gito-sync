@@ -6,7 +6,6 @@ source common.sh
 while test "$1"; do
   case "$1" in
     -f|--force) force=1;shift;;
-    -p|--patch) patch=1;shift;;
     -*) die "$1 is not an option";;
     *) LOCAL="$1";shift;;
   esac
@@ -18,17 +17,16 @@ git rev-parse --is-inside-work-tree &>/dev/null || die "Not a gito repo, first r
 test "$force" || test -n "$(git status --porcelain 2> /dev/null)" || stop "Nothing to sync"
 
 patch() {
-  test "$patch" && {
+  test ! "$force" && {
     { git format-patch --stdout -p HEAD^;echo -en '\0'; } >> "$PUBSUB_FILE"
     exit 0
   }
 }
 
 rebase() {
-  git pull --rebase -s recursive -X ours || {
+  git pull --commit -s recursive -X ours || {
     echo >&2 "WARNING: Couldn't resolve rebase, doing a hard reset"
-    git rebase --abort
-    git reset --hard origin/master
+    git merge --abort && git reset --hard origin/master
   }
 }
 
@@ -37,14 +35,14 @@ RETRY_COUNT=0
 push() {
   ((RETRY_COUNT++<MAX_RETRY)) || die "Reached max pull retry count"
   git push || {
-    rebase
+    rebase || true
     echo >&2 "INFO: Retrying $RETRY_COUNT"
     push
   }
 }
 
 git add "${LOCAL-$GIT_WORK_TREE}" &>/dev/null
-git commit -m "Gito auto commito" &>/dev/null && patch || test "$force"
+git commit -m "Gito auto commito" &>/dev/null && patch || true
 
-test "$force" && rebase
+rebase
 push

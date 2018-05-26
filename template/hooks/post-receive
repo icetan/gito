@@ -12,4 +12,5 @@ while read OLDSHA NEWSHA REF; do
   done >> pubsub
 done
 
-git reset --hard
+cd ..
+GIT_DIR=.gito git reset --hard

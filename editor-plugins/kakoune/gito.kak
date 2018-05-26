@@ -13,7 +13,7 @@ autosave-disable %{
 
 def -docstring %{gito-sync: gito sync this buffer} \
 gito-sync %{ %sh{
-  ( gito sync -p "${kak_buffile}" 2>&1 ) > /dev/null 2>&1 < /dev/null &
+  ( gito sync "${kak_buffile}" 2>&1 ) > /dev/null 2>&1 < /dev/null &
 }}
 
 def -docstring %{gito-enable: enable gito sync for this buffer} \

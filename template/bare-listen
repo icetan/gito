@@ -15,24 +15,24 @@ while IFS= read -r -d '' patch; do
   echo >&2 "$patch"
   echo >&2 "=== END PUSHED PATCH ==="
 
-  hash=$(head -n1 <<<"$patch" | grep -oE " [a-f0-9]{40} ")
-
-  if git rev-list --quiet -n1 $hash; then
-    echo >&2 "INFO: Patch already applied, skipping"
-    continue
-  fi
-
-  git add . &>/dev/null
-  git commit -m "Gito auto commito" && {
-    echo >&2 "INFO: Working tree not clean"
-    #exit 1
-  } || true
+#  hash=$(head -n1 <<<"$patch" | grep -oE " [a-f0-9]{40} ")
+#
+#  if git rev-list --quiet -n1 $hash; then
+#    echo >&2 "INFO: Patch already applied, skipping"
+#    continue
+#  fi
+#
+#  git add . &>/dev/null
+#  git commit -m "Gito auto commito" && {
+#    echo >&2 "INFO: Working tree not clean"
+#    #exit 1
+#  } || true
 
   if git am <<<"$patch"; then
     { echo "$patch";echo -ne '\0'; } >> "$GIT_DIR/pubsub"
     echo >&2 "INFO: Applied patch successfully"
   else
-    git am --abort
+    git am --abort || true
     echo >&2 "INFO: Apply patch failed"
     exit 1
   fi

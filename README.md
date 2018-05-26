@@ -27,7 +27,7 @@ sudo chmod 600 ~gito/.ssh/authorized_keys
 Create a central gito repo
 
 ```sh
-sudo -u gito gito init --bare ~gito/central
+sudo -u gito gito init ~gito/central
 ```
 
 Connect localy
@@ -39,18 +39,17 @@ gito clone ~gito/central my-share
 Connect remotely. Don't forget to start your sshd.
 
 ```sh
-gito clone gito@ssh-host:central my-share
+gito clone gito@127.0.0.1:central my-remote-share
 ```
 
 After you have cloned a gito repo you can start syncing files.
+
+To listen and push realtime updates use ```gito listen``` and keep it running.
+
+Then you can start editing files.
 
 ```sh
 cd my-share
 echo Look at this file! > a-file
 gito sync
 ```
-
-```gito sync``` will pull new changes from the remote central repo and push
-local changes.
-
-To listen to realtime updates from the central repo use ```gito listen```.
