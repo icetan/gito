@@ -5,6 +5,7 @@ source common.sh
 
 while test "$1"; do
   case "$1" in
+    -n|--no-commit) no_commit=1;shift;;
     -*) die "$1 is not an option";;
     *) arg="$1";shift
       test "$LOCAL" || { LOCAL="$arg";continue; }
@@ -15,6 +16,8 @@ done
 set -x
 
 LOCAL="${LOCAL-.}"
+gitopath "$LOCAL" &>/dev/null && stop "This is already a gito repo" || true
+
 mkdir -p "$LOCAL"
 
 (cd "$LOCAL"
@@ -22,6 +25,8 @@ mkdir -p "$LOCAL"
   export GIT_DIR="$GIT_WORK_TREE/.gito"
   git init --share=group --template="$SCRIPT_DIR/template"
   initrepo "$PWD"
-  git add .
-  git commit --allow-empty -m "Gito auto inito" || true
+  if [ ! "$no_commit" ]; then
+    git add .
+    git commit --allow-empty -m "Gito auto inito" || true
+  fi
 )

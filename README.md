@@ -1,6 +1,6 @@
 # gito
 
-Editor agnostic realtime pair programing (PoC)
+Editor agnostic realtime pair programing with git as backend (PoC)
 
 ## Setup
 
@@ -24,32 +24,29 @@ sudo chmod -R 755 ~gito
 sudo chmod 600 ~gito/.ssh/authorized_keys
 ```
 
-Create a central gito repo
+Create a directory with files that you want to share.
 
 ```sh
-sudo -u gito gito init ~gito/central
+mkdir my-share
+cd my-share
+echo Look at this file! > a-file
 ```
 
-Connect localy
+Start sharing your files.
 
 ```sh
-gito clone ~gito/central my-share
+gito connect gito@127.0.0.1:shared-repo
 ```
-
-Connect remotely. Don't forget to start your sshd.
-
-```sh
-gito clone gito@127.0.0.1:central my-remote-share
-```
-
-After you have cloned a gito repo you can start syncing files.
-
-To listen and push realtime updates use ```gito listen``` and keep it running.
 
 Then you can start editing files.
 
 ```sh
-cd my-share
-echo Look at this file! > a-file
+echo It is awesome >> a-file
 gito sync
 ```
+
+Each time you do ```gito sync``` your changes will be pushed out to the
+connected repo.
+
+Check out the ```editor-plugins``` directory for the best experience with your
+editor.

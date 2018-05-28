@@ -4,7 +4,9 @@ shopt -s huponexit
 
 source common.sh
 
-setrepo .
+LOCAL="${1-.}"
+
+setrepo "$LOCAL"
 
 lock_file="$GIT_DIR/.listen"
 if [ -f "$lock_file" ]; then
@@ -13,12 +15,6 @@ fi
 
 echo $$ > "$lock_file"
 trap 'trap - TERM && rm -f "$lock_file"' INT TERM EXIT
-
-while test "$1"; do
-  case "$1" in
-    -*) die "$1 is not an option";;
-  esac
-done
 
 REMOTE="$(git remote get-url origin)"
 SSH_HOST="${REMOTE%%:*}"
@@ -39,7 +35,7 @@ start_push() {
     #tail -f -n0 $CONSUME_FILE | $ssh_mode tee -a "$REMOTE_FILE/produce"
     tail -f -n0 "$CONSUME_FILE" | $ssh_mode "$REMOTE_FILE/bare-listen" "$REMOTE_FILE/.." || {
       warn "Push failed, rebasing"
-      gito sync -f || true
+      gito sync -f "$LOCAL" || true
     }
   done
 }
@@ -60,12 +56,12 @@ start_pull() {
     else
       git am --abort
       echo >&2 "INFO: Apply patch failed, rebasing"
-      gito sync -f || true
+      gito sync -f "$LOCAL" || true
     fi
   done
 }
 
-gito sync -f
+gito sync -f "$LOCAL"
 
 start_pull &
 echo $! >> "$lock_file"

@@ -7,7 +7,15 @@ while test "$1"; do
   case "$1" in
     -f|--force) force=1;shift;;
     -*) die "$1 is not an option";;
-    *) LOCAL="$1";shift;;
+    *)
+      if test -f "$1"; then
+        LOCAL="$(cd "$(dirname "$1")";pwd)"
+        LOCAL_FILE="$LOCAL/`basename "$1"`";
+      else
+        LOCAL="$(cd "$1";pwd)";
+        LOCAL_FILE="$LOCAL";
+      fi
+      shift;;
   esac
 done
 
@@ -40,7 +48,7 @@ push() {
   }
 }
 
-git add "${LOCAL-$GIT_WORK_TREE}" &>/dev/null
+git add "${LOCAL_FILE-$GIT_WORK_TREE}" &>/dev/null
 git commit -m "Gito auto commito" &>/dev/null && patch || true
 
 rebase
