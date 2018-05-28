@@ -1,11 +1,18 @@
 #!/bin/bash
 set -e
+shopt -s huponexit
 
 source common.sh
 
 setrepo .
 
-git rev-parse --is-inside-work-tree &> /dev/null || die "Not a gito repo, first run: gito init"
+lock_file="$GIT_DIR/.listen"
+if [ -f "$lock_file" ]; then
+  die "Already listening on this repo ($lock_file)"
+fi
+
+echo $$ > "$lock_file"
+trap 'trap - TERM && rm -f "$lock_file"' INT TERM EXIT
 
 while test "$1"; do
   case "$1" in
@@ -60,9 +67,9 @@ start_pull() {
 
 gito sync -f
 
-trap "trap - SIGTERM && kill -- 0" SIGINT SIGTERM EXIT
-
 start_pull &
+echo $! >> "$lock_file"
 start_push &
+echo $! >> "$lock_file"
 
 wait

@@ -24,9 +24,10 @@ initrepo() {
   )
 }
 setrepo() {
-  export GIT_WORK_TREE="`gitopath "$1"`"
-  export GIT_DIR="$GIT_WORK_TREE/.gito"
-  export CONSUME_FILE="$GIT_WORK_TREE/.gito/consume"
+  worktree=`gitopath "$1"` || die "Not a gito repo"
+  export GIT_WORK_TREE="$worktree"
+  export GIT_DIR="$worktree/.gito"
+  export CONSUME_FILE="$worktree/.gito/consume"
 }
 gitopath () {
   rtrav .gito "$(cd "${1-.}" &>/dev/null || cd "$(dirname "${1-.}")";pwd)"

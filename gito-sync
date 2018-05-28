@@ -12,7 +12,6 @@ while test "$1"; do
 done
 
 setrepo "${LOCAL-.}"
-git rev-parse --is-inside-work-tree &>/dev/null || die "Not a gito repo, first run: gito init"
 
 test "$force" || test -n "$(git status --porcelain 2> /dev/null)" || stop "Nothing to sync"
 
