@@ -13,20 +13,28 @@ while test "$1"; do
   esac
 done
 
-set -x
+mkrepo() {
+  (cd "$1"
+    export GIT_WORK_TREE="$PWD"
+    export GIT_DIR="$GIT_WORK_TREE/.gito"
+    git init --share=group --template="$SCRIPT_DIR/template"
+    initrepo "$PWD"
+    if [ ! "$no_commit" ]; then
+      git add .
+      git commit --allow-empty -m "Gito auto inito" || true
+    fi
+  )
+}
 
-LOCAL="${LOCAL-.}"
-gitopath "$LOCAL" &>/dev/null && stop "This is already a gito repo" || true
+grep -q : <<<"$LOCAL" && remote_mode=1
 
-mkdir -p "$LOCAL"
-
-(cd "$LOCAL"
-  export GIT_WORK_TREE="$PWD"
-  export GIT_DIR="$GIT_WORK_TREE/.gito"
-  git init --share=group --template="$SCRIPT_DIR/template"
-  initrepo "$PWD"
-  if [ ! "$no_commit" ]; then
-    git add .
-    git commit --allow-empty -m "Gito auto inito" || true
-  fi
-)
+if [ "$remote_mode" ]; then
+  dest="$(mktemp -d "${TMPDIR:-/tmp}"/gito.XXXXXXXX)"
+  mkrepo "$dest"
+  scp -r "$dest" "$LOCAL"
+  rm -rf "$dest"
+else
+  gitopath "$LOCAL" &>/dev/null && stop "This is already a gito repo" || true
+  mkdir -p "$LOCAL"
+  mkrepo "$LOCAL"
+fi

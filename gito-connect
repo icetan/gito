@@ -16,23 +16,21 @@ LOCAL="${2-.}"
 
 if [ "$REMOTE" ]; then
   REMOTE_FILE="${REMOTE#*:}"
-  grep -q : <<<"$REMOTE" && ssh_mode="ssh ${REMOTE%%:*} -- . ~/.profile \\\\;"
+  grep -q : <<<"$REMOTE" && ssh_mode="ssh ${REMOTE%%:*} -- "
 
   $ssh_mode test -d "$REMOTE_FILE" || remote_empty=1
   [[ -d "$LOCAL" && "`find "$LOCAL"/* -maxdepth 0`" ]] || local_empty=1
 
   if [[ "$local_empty" && "$remote_empty" ]]; then
-    $ssh_mode gito init "$REMOTE_FILE"
+    gito init "$REMOTE"
     gito clone "$REMOTE" "$LOCAL"
   elif [[ ! "$local_empty" && "$remote_empty" ]]; then
-    $ssh_mode gito init --no-commit "$REMOTE_FILE"
+    gito init --no-commit "$REMOTE"
     gito init "$LOCAL"
     connect "$LOCAL" "$REMOTE"
   elif [[ "$local_empty" && ! "$remote_empty" ]]; then
-    $ssh_mode gito init "$REMOTE_FILE"
     gito clone "$REMOTE" "$LOCAL"
   elif [[ ! "$local_empty" && ! "$remote_empty" ]]; then
-    $ssh_mode gito init --no-commit "$REMOTE_FILE"
     gito init "$LOCAL"
     connect "$LOCAL" "$REMOTE"
   fi

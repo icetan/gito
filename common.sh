@@ -21,6 +21,7 @@ initrepo() {
     git config -f .gito/config user.email "$(whoami)@$(hostname)"
     git config -f .gito/config user.name "$(whoami)"
     git config -f .gito/config receive.denyCurrentBranch ignore
+    git config -f .gito/config --unset core.worktree
   )
 }
 setrepo() {
